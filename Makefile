@@ -1,4 +1,4 @@
-QUAY_DIR = /home/thomasmckay/code/ansible-worker
+QUAY_DIR = ../..
 BUILD_DIR = build
 
 LOCAL_FILES = \
@@ -149,7 +149,7 @@ $(BUILD_DIR)/app.py: app.py
 	mkdir -p $(@D)
 	cp $< $@
 
-$(BUILD_DIR)/Dockerfile: Dockerfile
+$(BUILD_DIR)/Dockerfile: Dockerfile.rhel7
 	mkdir -p $(@D)
 	cp $< $@
 
