@@ -1,27 +1,30 @@
 QUAY_DIR ?= ../..
 BUILD_DIR = build
 
-LOCAL_FILES = \
-	worker/ansible_server.py \
-	worker/entrypoint.sh \
-	worker/ansible_worker.py \
-	worker/__init__.py \
-	worker/requirements.txt \
-	worker/routes/database.py \
-	worker/routes/decorators.py \
-	worker/routes/image.py \
-	worker/routes/image_storage_location.py \
-	worker/routes/__init__.py \
-	worker/routes/login_service.py \
-	worker/routes/organization.py \
-	worker/routes/repository.py \
-	worker/routes/role.py \
-	worker/routes/storage.py \
-	worker/routes/tag.py \
-	worker/routes/team.py \
-	worker/routes/team_role.py \
-	worker/routes/user.py \
-	worker/routes/visibility.py \
+WORKER_FILES = \
+  app.py \
+	ansible_server.py \
+	entrypoint.sh \
+	ansible_worker.py \
+	__init__.py \
+	requirements.txt \
+	routes/database.py \
+	routes/decorators.py \
+	routes/image.py \
+	routes/image_storage_location.py \
+	routes/__init__.py \
+	routes/login_service.py \
+	routes/organization.py \
+	routes/repository.py \
+	routes/role.py \
+	routes/storage.py \
+	routes/tag.py \
+	routes/team.py \
+	routes/team_role.py \
+	routes/user.py \
+	routes/visibility.py
+
+ANSIBLE_FILES = \
 	ansible-modules/examplecorp.yml \
 	ansible-modules/inventory.yml \
 	ansible-modules/play.yml \
@@ -149,13 +152,14 @@ QUAY_FILES = \
 	util/security/__init__.py
 
 QUAY_BUILD_FILES := $(addprefix $(BUILD_DIR)/, $(QUAY_FILES))
-LOCAL_BUILD_FILES := $(addprefix $(BUILD_DIR)/, $(LOCAL_FILES))
+WORKER_BUILD_FILES := $(addprefix $(BUILD_DIR)/, $(WORKER_FILES))
+ANSIBLE_BUILD_FILES := $(addprefix $(BUILD_DIR)/, $(ANSIBLE_FILES))
 
 all: build
 
-build: $(LOCAL_BUILD_FILES) \
+build: $(WORKER_BUILD_FILES) \
 	     $(QUAY_BUILD_FILES) \
-       $(BUILD_DIR)/app.py $(BUILD_DIR)/Dockerfile \
+       $(BUILD_DIR)/Dockerfile \
        $(BUILD_DIR)/data/migrations
 	#cd $(BUILD_DIR) && sudo docker build -t ansible-worker:1 .
 
@@ -164,13 +168,9 @@ clean:
 
 $(BUILD_DIR)/%: worker/%
 	mkdir -p $(@D)
-	cp -R $< $@
+	cp $< $@
 
 $(BUILD_DIR)/%: $(QUAY_DIR)/%
-	mkdir -p $(@D)
-	cp -R $< $@
-
-$(BUILD_DIR)/app.py: /worker/app.py
 	mkdir -p $(@D)
 	cp $< $@
 
