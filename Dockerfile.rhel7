@@ -10,20 +10,22 @@ ENV PYTHON_VERSION=2.7 \
     PIP_NO_CACHE_DIR=off
 
 ENV QUAYDIR /quay-config-worker
+ENV QUAYPATH "."
 RUN mkdir $QUAYDIR
 WORKDIR $QUAYDIR
 
-RUN INSTALL_PKGS="
+RUN INSTALL_PKGS="\
         python27 \
         python27-python-pip \
         gcc-c++ \
-        git
+        git \
+        scl-utils \
         " && \
     yum install -y yum-utils && \
     yum-config-manager --quiet --disable "*" >/dev/null && \
     yum-config-manager --quiet --enable \
         rhel-7-server-rpms \
-        rhel-server-rhscl-7-beta-rpms \
+        rhel-server-rhscl-7-rpms \
         rhel-7-server-optional-rpms \
         --save >/dev/null && \
     yum -y --setopt=tsflags=nodocs --setopt=skip_missing_names_on_install=False install $INSTALL_PKGS && \
@@ -35,6 +37,10 @@ COPY . .
 SHELL [ "/usr/bin/scl", "enable", "python27" ]
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt --no-cache
+
+RUN pip install --upgrade setuptools pip && \
+    pip install -r requirements.txt --no-cache && \
+    pip freeze
 
 RUN UNINSTALL_PKGS="\
         gcc-c++ \

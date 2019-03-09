@@ -158,6 +158,9 @@ ANSIBLE_BUILD_FILES := $(addprefix $(BUILD_DIR)/, $(ANSIBLE_FILES))
 
 all: build
 
+container: build
+	cd $(BUILD_DIR) && sudo docker build -t ansible-worker:1 .
+
 build: $(WORKER_BUILD_FILES) \
 	     $(QUAY_BUILD_FILES) \
        $(BUILD_DIR)/Dockerfile \
