@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 app.config.from_object(DefaultConfig())
 app.teardown_request(database.close_db_filter)  # ???? why is this needed?
-app.config.update(yaml.load(os.environ.get('ANSIBLE_WORKER_CONFIG', '')))
-app.config.update(json.loads(os.environ.get('ANSIBLE_WORKER_OVERRIDE', '{}')))
+#app.config.update(yaml.load(os.environ.get('ANSIBLE_WORKER_CONFIG', '')))
+#app.config.update(json.loads(os.environ.get('ANSIBLE_WORKER_OVERRIDE', '{}')))
 analytics = Analytics(app)
 
 @staticmethod

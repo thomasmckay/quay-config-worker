@@ -1,5 +1,6 @@
 QUAY_DIR ?= ../..
 BUILD_DIR = build
+IMAGE_NAME ?= quay-config-worker:latest
 
 WORKER_FILES = \
 	ansible_server.py \
@@ -123,6 +124,7 @@ QUAY_FILES = \
   release.py \
 	util/abchelpers.py \
 	util/backoff.py \
+	util/bytes.py \
 	util/canonicaljson.py \
 	util/expiresdict.py \
 	util/http.py \
@@ -156,10 +158,10 @@ QUAY_BUILD_FILES := $(addprefix $(BUILD_DIR)/, $(QUAY_FILES))
 WORKER_BUILD_FILES := $(addprefix $(BUILD_DIR)/, $(WORKER_FILES))
 ANSIBLE_BUILD_FILES := $(addprefix $(BUILD_DIR)/, $(ANSIBLE_FILES))
 
-all: build
+all: image
 
-container: build
-	cd $(BUILD_DIR) && sudo docker build -t ansible-worker:1 .
+image: build
+	cd $(BUILD_DIR) && sudo docker build -t $(IMAGE_NAME) --no-cache .
 
 build: $(WORKER_BUILD_FILES) \
 	     $(QUAY_BUILD_FILES) \
