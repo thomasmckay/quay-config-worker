@@ -17,7 +17,10 @@ RUN INSTALL_PKGS="python27 python27-python-pip" && \
     UNINSTALL_PKGS="python27-python-pip gcc-c++ git" && \
     yum install -y yum-utils && \
     yum-config-manager --quiet --disable "*" >/dev/null && \
-    yum-config-manager --quiet --enable rhel-7-server-rpms rhel-server-rhscl-7-rpms --save >/dev/null && \
+    yum-config-manager --quiet --enable \
+        rhel-7-server-rpms \
+        rhel-server-rhscl-7-beta-rpms \
+        --save >/dev/null && \
     yum -y --setopt=tsflags=nodocs install $INSTALL_PKGS $UNINSTALL_PKGS && \
     yum -y clean all --enablerepo='*'
 
@@ -25,9 +28,9 @@ COPY . .
 
 RUN scl enable python27 "pip install --upgrade pip && pip install -r requirements.txt --no-cache"
 
-RUN UNINSTALL_PKGS="python27-python-pip gcc-c++ git" && \
-    yum remove -y $UNINSTALL_PKGS && \
-    yum clean all
+# RUN UNINSTALL_PKGS="python27-python-pip gcc-c++ git" && \
+#     yum remove -y $UNINSTALL_PKGS && \
+#     yum clean all
 
 EXPOSE 8688
 EXPOSE 8788

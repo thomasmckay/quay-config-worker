@@ -1,4 +1,4 @@
-QUAY_DIR = ../..
+QUAY_DIR ?= ../..
 BUILD_DIR = build
 
 LOCAL_FILES = \
@@ -41,9 +41,15 @@ LOCAL_FILES = \
 
 QUAY_FILES = \
 	_init.py \
+	config.py \
 	auth/auth_context.py \
 	auth/__init__.py \
 	auth/scopes.py \
+	buildstatus/building.svg \
+	buildstatus/cancelled.svg \
+	buildstatus/failed.svg \
+	buildstatus/none.svg \
+	buildstatus/ready.svg \
 	data/database.py \
 	data/fields.py \
 	data/__init__.py \
@@ -79,12 +85,22 @@ QUAY_FILES = \
   data/model/team.py \
   data/model/token.py \
   data/model/user.py \
+  data/model/oci/__init__.py \
+  data/model/oci/blob.py \
+  data/model/oci/label.py \
+  data/model/oci/manifest.py \
+  data/model/oci/retriever.py \
+  data/model/oci/shared.py \
+  data/model/oci/tag.py \
 	data/registry_model/datatype.py \
 	data/registry_model/datatypes.py \
 	data/registry_model/__init__.py \
 	data/registry_model/interface.py \
 	data/registry_model/label_handlers.py \
+	data/registry_model/modelsplitter.py \
+	data/registry_model/registry_oci_model.py \
 	data/registry_model/registry_pre_oci_model.py \
+	data/registry_model/shared.py \
 	digest/digest_tools.py \
 	digest/__init__.py \
 	features/__init__.py \
@@ -92,8 +108,14 @@ QUAY_FILES = \
 	image/docker/__init__.py \
 	image/docker/interfaces.py \
 	image/docker/schema1.py \
+	image/docker/schemas.py \
+	image/docker/schemautil.py \
+	image/docker/types.py \
 	image/docker/v1.py \
 	image/docker/schema2/__init__.py \
+	image/docker/schema2/config.py \
+	image/docker/schema2/list.py \
+	image/docker/schema2/manifest.py \
   release.py \
 	util/abchelpers.py \
 	util/backoff.py \
@@ -136,6 +158,9 @@ build: $(LOCAL_BUILD_FILES) \
        $(BUILD_DIR)/app.py $(BUILD_DIR)/Dockerfile \
        $(BUILD_DIR)/data/migrations
 	#cd $(BUILD_DIR) && sudo docker build -t ansible-worker:1 .
+
+clean:
+	$(RM) -R $(BUILD_DIR)/*
 
 $(BUILD_DIR)/%: %
 	mkdir -p $(@D)
