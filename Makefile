@@ -2,11 +2,26 @@ QUAY_DIR ?= ../..
 BUILD_DIR = build
 
 LOCAL_FILES = \
-	ansible_server.py \
-	ansible_worker.sh \
-	ansible_worker.py \
-	__init__.py \
-	requirements.txt \
+	worker/ansible_server.py \
+	worker/entrypoint.sh \
+	worker/ansible_worker.py \
+	worker/__init__.py \
+	worker/requirements.txt \
+	worker/routes/database.py \
+	worker/routes/decorators.py \
+	worker/routes/image.py \
+	worker/routes/image_storage_location.py \
+	worker/routes/__init__.py \
+	worker/routes/login_service.py \
+	worker/routes/organization.py \
+	worker/routes/repository.py \
+	worker/routes/role.py \
+	worker/routes/storage.py \
+	worker/routes/tag.py \
+	worker/routes/team.py \
+	worker/routes/team_role.py \
+	worker/routes/user.py \
+	worker/routes/visibility.py \
 	ansible-modules/examplecorp.yml \
 	ansible-modules/inventory.yml \
 	ansible-modules/play.yml \
@@ -22,22 +37,7 @@ LOCAL_FILES = \
 	ansible-modules/library/quay_team.py \
 	ansible-modules/library/quay_team_role.py \
 	ansible-modules/library/quay_user.py \
-	ansible-modules/library/quay_visibility.py \
-	routes/database.py \
-	routes/decorators.py \
-	routes/image.py \
-	routes/image_storage_location.py \
-	routes/__init__.py \
-	routes/login_service.py \
-	routes/organization.py \
-	routes/repository.py \
-	routes/role.py \
-	routes/storage.py \
-	routes/tag.py \
-	routes/team.py \
-	routes/team_role.py \
-	routes/user.py \
-	routes/visibility.py
+	ansible-modules/library/quay_visibility.py
 
 QUAY_FILES = \
 	_init.py \
@@ -162,15 +162,15 @@ build: $(LOCAL_BUILD_FILES) \
 clean:
 	$(RM) -R $(BUILD_DIR)/*
 
-$(BUILD_DIR)/%: %
+$(BUILD_DIR)/%: worker/%
 	mkdir -p $(@D)
-	cp $< $@
+	cp -R $< $@
 
 $(BUILD_DIR)/%: $(QUAY_DIR)/%
 	mkdir -p $(@D)
-	cp $< $@
+	cp -R $< $@
 
-$(BUILD_DIR)/app.py: app.py
+$(BUILD_DIR)/app.py: /worker/app.py
 	mkdir -p $(@D)
 	cp $< $@
 

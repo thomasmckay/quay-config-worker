@@ -1,5 +1,5 @@
 FROM registry.redhat.io/rhel7:7.6
-#FROM centos:7
+LABEL maintainer "thomasmckay@redhat.com"
 
 ENV PYTHON_VERSION=2.7 \
     PATH=$HOME/.local/bin/:$PATH \
@@ -9,30 +9,54 @@ ENV PYTHON_VERSION=2.7 \
     LANG=en_US.UTF-8 \
     PIP_NO_CACHE_DIR=off
 
-ENV WORKER_DIR /ansible-worker
-RUN mkdir $WORKER_DIR
-WORKDIR $WORKER_DIR
+ENV QUAYDIR /quay-config-worker
+RUN mkdir $QUAYDIR
+WORKDIR $QUAYDIR
 
-RUN INSTALL_PKGS="python27 python27-python-pip" && \
-    UNINSTALL_PKGS="python27-python-pip gcc-c++ git" && \
+RUN INSTALL_PKGS="
+        python27 \
+        python27-python-pip \
+        gcc-c++ \
+        git
+        " && \
     yum install -y yum-utils && \
     yum-config-manager --quiet --disable "*" >/dev/null && \
     yum-config-manager --quiet --enable \
         rhel-7-server-rpms \
         rhel-server-rhscl-7-beta-rpms \
+        rhel-7-server-optional-rpms \
         --save >/dev/null && \
-    yum -y --setopt=tsflags=nodocs install $INSTALL_PKGS $UNINSTALL_PKGS && \
+    yum -y --setopt=tsflags=nodocs --setopt=skip_missing_names_on_install=False install $INSTALL_PKGS && \
+    yum -y update && \
     yum -y clean all --enablerepo='*'
 
 COPY . .
 
-RUN scl enable python27 "pip install --upgrade pip && pip install -r requirements.txt --no-cache"
+SHELL [ "/usr/bin/scl", "enable", "python27" ]
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt --no-cache
 
-# RUN UNINSTALL_PKGS="python27-python-pip gcc-c++ git" && \
-#     yum remove -y $UNINSTALL_PKGS && \
-#     yum clean all
+RUN UNINSTALL_PKGS="\
+        gcc-c++ \
+        git \
+        kernel-headers \
+        " && \
+    yum remove -y $UNINSTALL_PKGS && \
+    yum clean all && \
+    rm -rf /var/cache/yum /tmp/* /var/tmp/* /root/.cache
 
-EXPOSE 8688
-EXPOSE 8788
+EXPOSE 8688 8788
 
-CMD scl enable python27 "./ansible_worker.sh"
+RUN chgrp -R 0 $QUAYDIR && \
+    chmod -R g=u $QUAYDIR
+
+RUN mkdir /datastorage && chgrp 0 /datastorage && chmod g=u /datastorage && \
+    mkdir -p /conf/stack && chgrp 0 /conf/stack && chmod g=u /conf/stack && \
+    mkdir -p /tmp && chgrp 0 /tmp && chmod g=u /tmp && \
+    chmod g=u /etc/passwd
+
+VOLUME ["/var/log", "/datastorage", "/tmp", "/conf/stack"]
+
+ENTRYPOINT ["/usr/bin/scl", "enable", "python27", "/quay-config-worker/entrypoint.sh"]
+
+USER 1001
