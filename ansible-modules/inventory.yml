@@ -1,0 +1,5 @@
+quay:
+  hosts:
+    devel.example.com:
+  vars:
+    quay_url: https://devel.example.com:8688

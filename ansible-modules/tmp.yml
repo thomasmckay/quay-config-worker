@@ -1,0 +1,23 @@
+---
+- hosts: all
+  tasks:
+    - name: Repositories
+      quay_repository:
+        user: developer
+        public: false
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - "alpine"
+      register: params
+    - name: Upload Repositories
+      uri:
+        url: "{{ quay_url }}/repository"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
