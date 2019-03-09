@@ -16,7 +16,7 @@ case "$QUAYENTRY" in
         ;;
     "worker")
         echo "Running both interactive and batch scripts"
-        supervisord -c ${QUAYCONF}/supervisord.conf 2>&1
+        supervisord -c supervisord.conf 2>&1
         ;;
     *)
         echo "Running '$QUAYENTRY'"

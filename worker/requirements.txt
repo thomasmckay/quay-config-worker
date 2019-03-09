@@ -21,5 +21,7 @@ pycryptodome==3.6.1
 pyjwkest==1.4.0
 pymemcache==1.4.4
 raven==6.7.0
+supervisor==3.3.5
+supervisor-stdout==0.1.1
 toposort==1.5
 trollius==2.2

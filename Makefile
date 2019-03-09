@@ -2,12 +2,13 @@ QUAY_DIR ?= ../..
 BUILD_DIR = build
 
 WORKER_FILES = \
-  app.py \
 	ansible_server.py \
-	entrypoint.sh \
 	ansible_worker.py \
+  app.py \
+	entrypoint.sh \
 	__init__.py \
 	requirements.txt \
+	supervisord.conf \
 	routes/database.py \
 	routes/decorators.py \
 	routes/image.py \
