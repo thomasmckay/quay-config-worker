@@ -1,0 +1,27 @@
+-e git+https://github.com/DevTable/anunidecode.git@d59236a822e578ba3a0e5e5abbd3855873fa7a88#egg=anunidecode
+-e git+https://github.com/NateFerrero/oauth2lib.git@d161b010f8a596826050a09e5e94d59443cc12d9#egg=oauth2lib
+-e git+https://github.com/coreos/resumablehashlib.git@b1b631249589b07adf40e0ee545b323a501340b4#egg=resumablehashlib
+Flask-Login==0.4.1
+Flask-Principal==0.4.0
+Flask==1.0.2
+PyJWT==1.6.1
+SQLAlchemy==1.1.5
+aiowsgi==0.6
+alembic==0.9.9
+ansible
+autobahn==0.9.3.post3
+cachetools==1.1.6
+enum
+httplib2==0.11.3
+jsonschema==2.6.0
+mixpanel==4.3.2
+peewee==3.6.4
+psycopg2==2.7.4
+pycryptodome==3.6.1
+pyjwkest==1.4.0
+pymemcache==1.4.4
+raven==6.7.0
+supervisor==3.3.5
+supervisor-stdout==0.1.1
+toposort==1.5
+trollius==2.2

@@ -1,0 +1,294 @@
+# - hosts: quay.example.com
+#   vars:
+#     ansible_python_interpreter: "/home/vagrant/code/quay/workers/ansible_worker/ansible-modules/pyenv"
+- hosts: quay
+  tasks:
+    - name: TESTING
+      quay_user:
+        username: "{{ item }}"
+        password: changeme
+        email: "{{ item }}@examplecorp.com"
+        exact_teams: [examplecorp/developer]
+      loop:
+        - thomasmckay
+      register: params
+      tags:
+        testing
+    - name: Upload Users
+      uri:
+        url: "{{ quay_url }}/user"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+      tags: testing
+
+    # O R G A N I Z A T I O N
+    #
+    - name: Organizations
+      quay_organization:
+        name: "{{ item }}"
+        user: thomasmckay
+        email: "thomasmckay+{{ item }}@examplecorp.com"
+      loop:
+        - examplecorp
+      register: params
+    - name: Upload Organizations
+      uri:
+        url: "{{ quay_url }}/organization"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+
+    # - name: testing params
+    #   quay_repository:
+    #     uri: postgresql://postgres:redhat@quay.example.com:5432/quay?sslmode=disable
+    #     state: present
+    #     user: devtable
+    #     public: false
+    #     name: repository 3
+    #   #   name: "{{ item }}"
+    #   # loop:
+    #   #   - "repository 1"
+    #   #   - "repository2"
+    #   register: params
+    # - debug: var=params
+    # - name: testing 1 2 3
+    #   uri:
+    #     url: "{{ quay_url }}/repository"
+    #     method: POST
+    #     headers:
+    #       Content-Type: "application/json"
+    #     body: "{{ params }}"
+    #     body_format: json
+    #   register: result
+    # - debug: var=result
+
+
+    # - name: Initialize database
+    #   quay_db_initialize:
+    #     uri: postgresql://postgres:redhat@quay.example.com:5432/quay?sslmode=disable
+    #     state: present
+    #   register: result
+    # - debug: var=result
+
+    # R O L E
+    #
+    - name: Roles
+      quay_role:
+        name: "{{ item }}"
+      loop:
+        - admin
+        - write
+        - read
+      register: params
+    - name: Upload Roles
+      uri:
+        url: "{{ quay_url }}/role"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # T E A M   R O L E
+    #
+    - name: Team Roles
+      quay_team_role:
+        name: "{{ item }}"
+      loop:
+        - admin
+        - creator
+        - member
+        - developer
+      register: params
+    - name: Upload Team Roles
+      uri:
+        url: "{{ quay_url }}/team_role"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # T E A M
+    #
+    - name: Teams
+      quay_team:
+        name: developer
+        user: thomasmckay
+        organization: examplecorp
+        role: developer
+        description: Example Corp. Developers
+      register: params
+    - name: Upload Teams
+      uri:
+        url: "{{ quay_url }}/team"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # V I S I B I L I T Y
+    #
+    - name: Visibility
+      quay_visibility:
+        name: "{{ item }}"
+      loop:
+        - public
+        - private
+      register: params
+    - name: Upload Visibility
+      uri:
+        url: "{{ quay_url }}/visibility"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # L O G I N   S E R V I C E
+    #
+    - name: Login Services
+      quay_login_service:
+        name: "{{ item }}"
+      loop:
+        - google
+        - github
+        - quayrobot
+        - ldap
+        - jwtauthn
+        - keystone
+        - dex
+        - oidc
+      register: params
+    - name: Upload Login Services
+      uri:
+        url: "{{ quay_url }}/login_service"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # I M A G E   S T O R A G E   L O C A T I O N
+    #
+    - name: Image Storage Locations
+      quay_image_storage_location:
+        name: "{{ item }}"
+      loop:
+        - us_east
+      register: params
+    - name: Upload Storage Locations
+      uri:
+        url: "{{ quay_url }}/image_storage_location"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+
+    # - name: Repository devtable/alpine
+    #   quay_repository:
+    #     uri: postgresql://postgres:redhat@quay.example.com:5432/quay?sslmode=disable
+    #     state: present
+    #     user: devtable
+    #     name: alpine
+    #     public: false
+    #   register: result
+    # - debug: var=result
+
+    # - name: Tag devtable/alpine:latest
+    #   quay_tag:
+    #     uri: postgresql://postgres:redhat@quay.example.com:5432/quay?sslmode=disable
+    #     state: present
+    #     user: devtable
+    #     project: devtable
+    #     name: latest
+    #   register: result
+    # - debug: var=result
+
+    # - name: Tag devtable/etcd:latest
+    #   quay_tag:
+    #     uri: postgresql://postgres:redhat@quay.example.com:5432/quay?sslmode=disable
+    #     state: present
+    #     user: devtable
+    #     project: devtable
+    #     name: etcd
+    #   register: result
+    # - debug: var=result
+
+    # - name:
+    #   quay_image:
+    #     project: devtable
+    #     repository: etcd
+    #     image_id: openshift3/etcd/7
+    #   register: result
+    # - debug: var=result
+
+    # - name:
+    #   quay_tag:
+    #     project: devtable
+    #     repository: etcd
+    #     image_id: openshift3/etcd/7
+    #     tag: latest
+    #   register: result
+    # - debug: var=result
+
+    # - name:
+    #   quay_organization:
+    #     user: devtable
+    #     name: examplecorp
+    #     email: admin@examplecorp.com
+    #   register: result
+    # - debug: var=result
+
+    # - name:
+    #   quay_team_role:
+    #     name: administrator
+    #   register: result
+    # - debug: var=result
+
+    # - name:
+    #   quay_team:
+    #     user: devtable
+    #     organization: examplecorp
+    #     name: administrators
+    #     role: administrator
+    #     description: Administrators of Example Corporation
+    #   register: result
+    # - debug: var=result
+
+    # U S E R
+    #
+    - name: Users
+      quay_user:
+        username: "{{ item }}"
+        password: changeme
+        email: "{{ item }}@examplecorp.com"
+      loop:
+        - thomasmckay
+      register: params
+    - name: Upload Users
+      uri:
+        url: "{{ quay_url }}/user"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result

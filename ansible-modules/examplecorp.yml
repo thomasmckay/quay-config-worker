@@ -1,0 +1,281 @@
+---
+- hosts: all
+  tasks:
+    # D A T A B A S E
+    #
+    - name: Reset Database
+      tags: [reset]
+      quay_database:
+        state: reset
+      register: params
+    - name: Validate Database
+      tags: [all, database]
+      quay_database:
+        state: present
+      register: params
+    - name: Upload Database
+      tags: [all, database, reset]
+      uri:
+        url: "{{ quay_url }}/database"
+        # This doesn't work
+        # client_cert: /home/thomasmckay/code/tmp/ssl.cert
+        # client_key: /home/thomasmckay/code/tmp/ssl.key
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # U S E R
+    #
+    - name: Users
+      quay_user:
+        username: "{{ item }}"
+        password: changeme
+        email: "{{ item }}@examplecorp.com"
+      loop:
+        - admin
+        - developer
+      register: params
+    - name: Upload Users
+      uri:
+        url: "{{ quay_url }}/user"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # I M A G E   S T O R A G E   L O C A T I O N
+    #
+    # TODO: These must match conf/stack/config.yaml DISTRIBUTED_STORAGE_CONFIG
+    #       Update config.yaml based on these settings
+    #       If LocalStorage, create the dirs
+    #
+    - name: Image Storage Locations
+      quay_image_storage_location:
+        name: "{{ item }}"
+      loop:
+        - local_eu
+        - local_us
+      register: params
+    - name: Upload Storage Locations
+      uri:
+        url: "{{ quay_url }}/image_storage_location"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # O R G A N I Z A T I O N
+    #
+    - name: Organizations
+      quay_organization:
+        name: "{{ item }}"
+        user: developer
+        email: "developer+{{ item }}@examplecorp.com"
+      loop:
+        - examplecorp
+      register: params
+    - name: Upload Organizations
+      uri:
+        url: "{{ quay_url }}/organization"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # R O L E
+    #
+    # TODO: These are limited in code to admin, write, read
+    #
+    - name: Roles
+      quay_role:
+        name: "{{ item }}"
+      loop:
+        - admin
+        - write
+        - read
+      register: params
+    - name: Upload Roles
+      uri:
+        url: "{{ quay_url }}/role"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # T E A M   R O L E
+    #
+    # TODO: These are limited in code to admin, creator, member
+    #
+    - name: Team Roles
+      quay_team_role:
+        name: "{{ item }}"
+      loop:
+        - admin
+        - creator
+        - member
+      register: params
+    - name: Upload Team Roles
+      uri:
+        url: "{{ quay_url }}/team_role"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # T E A M
+    #
+    - name: Teams
+      quay_team:
+        name: "{{ item }}"
+        user: developer
+        organization: examplecorp
+        role: creator
+        description: Example Corp. Developers
+      loop:
+        - developers
+      register: params
+    - name: Upload Teams
+      uri:
+        url: "{{ quay_url }}/team"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # V I S I B I L I T Y
+    #
+    # TODO: Are these restricted in code to public and private?
+    #
+    - name: Visibility
+      quay_visibility:
+        name: "{{ item }}"
+      loop:
+        - public
+        - private
+      register: params
+    - name: Upload Visibility
+      uri:
+        url: "{{ quay_url }}/visibility"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # L O G I N   S E R V I C E
+    #
+    - name: Login Services
+      quay_login_service:
+        name: "{{ item }}"
+      loop:
+        - google
+        - github
+        - quayrobot
+        - ldap
+        - jwtauthn
+        - keystone
+        - dex
+        - oidc
+      register: params
+    - name: Upload Login Services
+      uri:
+        url: "{{ quay_url }}/login_service"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # R E P O S I T O R I E S
+    #
+    - name: Repositories
+      tags: [all, repositories]
+      quay_repository:
+        user: developer
+        public: false
+        name: "{{ item }}"
+      loop:
+        - "alpine"
+      register: params
+    - name: Upload Repositories
+      tags: [all, repositories]
+      uri:
+        url: "{{ quay_url }}/repository"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # I M A G E
+    #
+    - name: Images
+      tags: [all, images]
+      quay_image:
+        project: developer
+        repository: alpine
+        image_id: developer/alpine/1
+      register: params
+    - name: Upload Images
+      tags: [all, images]
+      uri:
+        url: "{{ quay_url }}/image"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result
+
+    # T A G
+    #
+    - name: Tags
+      tags: [all, tags]
+      quay_tag:
+        project: developer
+        repository: alpine
+        image_id: developer/alpine/1
+        name: "{{ item }}"
+      loop:
+        - "latest"
+      register: params
+    - name: Upload Tags
+      tags: [all, tags]
+      uri:
+        url: "{{ quay_url }}/tag"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result

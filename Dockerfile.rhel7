@@ -1,0 +1,68 @@
+FROM registry.redhat.io/rhel7:7.6
+LABEL maintainer "thomasmckay@redhat.com"
+
+ENV PYTHON_VERSION=2.7 \
+    PATH=$HOME/.local/bin/:$PATH \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8 \
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8 \
+    PIP_NO_CACHE_DIR=off
+
+ENV QUAYDIR /quay-config-worker
+ENV QUAYPATH "."
+RUN mkdir $QUAYDIR
+WORKDIR $QUAYDIR
+
+RUN INSTALL_PKGS="\
+        python27 \
+        python27-python-pip \
+        gcc-c++ \
+        git \
+        scl-utils \
+        " && \
+    yum install -y yum-utils && \
+    yum-config-manager --quiet --disable "*" >/dev/null && \
+    yum-config-manager --quiet --enable \
+        rhel-7-server-rpms \
+        rhel-server-rhscl-7-rpms \
+        rhel-7-server-optional-rpms \
+        --save >/dev/null && \
+    yum -y --setopt=tsflags=nodocs --setopt=skip_missing_names_on_install=False install $INSTALL_PKGS && \
+    yum -y update && \
+    yum -y clean all --enablerepo='*'
+
+COPY . .
+
+SHELL [ "/usr/bin/scl", "enable", "python27" ]
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt --no-cache
+
+RUN pip install --upgrade setuptools pip && \
+    pip install -r requirements.txt --no-cache && \
+    pip freeze
+
+RUN UNINSTALL_PKGS="\
+        gcc-c++ \
+        git \
+        kernel-headers \
+        " && \
+    yum remove -y $UNINSTALL_PKGS && \
+    yum clean all && \
+    rm -rf /var/cache/yum /tmp/* /var/tmp/* /root/.cache
+
+EXPOSE 8688 8788
+
+RUN chgrp -R 0 $QUAYDIR && \
+    chmod -R g=u $QUAYDIR
+
+RUN mkdir /datastorage && chgrp 0 /datastorage && chmod g=u /datastorage && \
+    mkdir -p /conf/stack && chgrp 0 /conf/stack && chmod g=u /conf/stack && \
+    mkdir -p /tmp && chgrp 0 /tmp && chmod g=u /tmp && \
+    chmod g=u /etc/passwd
+
+VOLUME ["/var/log", "/datastorage", "/tmp", "/conf/stack"]
+
+ENTRYPOINT ["/usr/bin/scl", "enable", "python27", "/quay-config-worker/entrypoint.sh"]
+
+USER 1001
