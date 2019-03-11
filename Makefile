@@ -19,6 +19,7 @@ WORKER_FILES = \
 	routes/organization.py \
 	routes/repository.py \
 	routes/role.py \
+	routes/service_key.py \
 	routes/storage.py \
 	routes/tag.py \
 	routes/team.py \
