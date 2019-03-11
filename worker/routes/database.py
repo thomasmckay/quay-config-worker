@@ -44,6 +44,7 @@ def process(resources):
                      "labelsourcetype",
                      "logentry",
                      "logentry2",
+                     "logentry3",
                      "logentrykind",
                      "loginservice",
                      "manifest",

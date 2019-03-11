@@ -23,10 +23,15 @@ from config import DefaultConfig
 app = Flask(__name__)
 logger = logging.getLogger(__name__)
 
-app.config.from_object(DefaultConfig())
+config = DefaultConfig()
+app.config.from_object(config)
 app.teardown_request(database.close_db_filter)  # ???? why is this needed?
-#app.config.update(yaml.load(os.environ.get('ANSIBLE_WORKER_CONFIG', '')))
-#app.config.update(json.loads(os.environ.get('ANSIBLE_WORKER_OVERRIDE', '{}')))
+config = os.environ.get('OVERRIDE_CONFIG_YAML', None)
+if config is not None:
+  app.config.update(yaml.load())
+config = os.environ.get('OVERRIDE_CONFIG_JSON', None)
+if config is not None:
+  app.config.update(json.loads(config))
 analytics = Analytics(app)
 
 @staticmethod

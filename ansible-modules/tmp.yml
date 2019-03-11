@@ -1,18 +1,25 @@
 ---
 - hosts: all
   tasks:
-    - name: Repositories
-      quay_repository:
-        user: developer
-        public: false
-        name: "{{ item }}"
-        state: absent
-      loop:
-        - "alpine"
+    # D A T A B A S E
+    #
+    - name: Reset Database
+      tags: [reset]
+      quay_database:
+        state: reset
       register: params
-    - name: Upload Repositories
+    - name: Validate Database
+      tags: [all, database]
+      quay_database:
+        state: present
+      register: params
+    - name: Upload Database
+      tags: [all, database, reset]
       uri:
-        url: "{{ quay_url }}/repository"
+        url: "{{ quay_url }}/database"
+        # This doesn't work
+        # client_cert: /home/thomasmckay/code/tmp/ssl.cert
+        # client_key: /home/thomasmckay/code/tmp/ssl.key
         validate_certs: no
         method: POST
         headers:
@@ -20,4 +27,3 @@
         body: "{{ params }}"
         body_format: json
       register: result
-
