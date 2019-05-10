@@ -19,6 +19,7 @@ import routes.login_service
 import routes.organization
 import routes.repository
 import routes.role
+import routes.service_key
 import routes.tag
 import routes.team
 import routes.team_role
@@ -39,6 +40,8 @@ class AnsibleServerStatus(object):
 
 class AnsibleServer(object):
   def __init__(self, registry_hostname, queue):
+    import pydevd
+    pydevd.settrace('192.168.123.1', port=23456, stdoutToServer=True, stderrToServer=True, suspend=False)
     self._current_status = AnsibleServerStatus.STARTING
     self._queue = queue
 
@@ -93,6 +96,11 @@ class AnsibleServer(object):
     @controller_app.route('/role', methods=['POST'])
     def role():
         response, status = routes.role.process()
+        return json.dumps(response), status
+
+    @controller_app.route('/service_key', methods=['POST'])
+    def service_key():
+        response, status = routes.service_key.process()
         return json.dumps(response), status
 
     @controller_app.route('/team', methods=['POST'])

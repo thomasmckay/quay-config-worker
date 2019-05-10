@@ -1,25 +1,17 @@
 ---
 - hosts: all
   tasks:
-    # D A T A B A S E
-    #
-    - name: Reset Database
-      tags: [reset]
-      quay_database:
-        state: reset
-      register: params
-    - name: Validate Database
-      tags: [all, database]
-      quay_database:
+    - name: Service Key
+      tags: [all]
+      quay_service_key:
         state: present
+        name: key1
+        key: abcdef1234
       register: params
-    - name: Upload Database
-      tags: [all, database, reset]
+    - name: Upload Service Key
+      tags: [all]
       uri:
-        url: "{{ quay_url }}/database"
-        # This doesn't work
-        # client_cert: /home/thomasmckay/code/tmp/ssl.cert
-        # client_key: /home/thomasmckay/code/tmp/ssl.key
+        url: "{{ quay_url }}/service_key"
         validate_certs: no
         method: POST
         headers:

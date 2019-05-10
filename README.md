@@ -22,3 +22,29 @@ EOF
 docker run -it -e "OVERRIDE_CONFIG_JSON=$(<args.json)" -p 8788:8788 -p 8688:8688 quay-config-worker:latest
 
 ```
+
+** Development
+
+Setup and run the worker service.
+```
+cd worker
+pip install virtualenv
+virtualenv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+```
+
+```
+cd worker
+pip install -r requirements.txt
+make build
+```
+
+To confirm that the proper source files are part of the final build, set $QUAYDIR to be the local build dir (created by 'make build' above). Alternatively, point $QUAYDIR to a full checkout of https://github.com/quay/quay.
+```
+cd worker
+export QUAYDIR=../build
+export PYTHONPATH=.:$QUAYDIR
+python ansible_worker.py
+```
+
