@@ -1,4 +1,6 @@
 import logging
+import os
+import sys
 
 import trollius
 from trollius.coroutines import From
@@ -20,16 +22,18 @@ import routes.organization
 import routes.repository
 import routes.role
 import routes.service_key
+import routes.skopeo
 import routes.tag
 import routes.team
 import routes.team_role
 import routes.user
 import routes.visibility
+import routes.work_queue
 
 
 logger = logging.getLogger(__name__)
 
-WORK_CHECK_TIMEOUT = 10
+WORK_CHECK_TIMEOUT = int(os.environ.get("WORK_CHECK_TIMEOUT", 10))
 
 class AnsibleServerStatus(object):
     STARTING = 'starting'
@@ -40,8 +44,9 @@ class AnsibleServerStatus(object):
 
 class AnsibleServer(object):
   def __init__(self, registry_hostname, queue):
-    import pydevd
-    pydevd.settrace('192.168.123.1', port=23456, stdoutToServer=True, stderrToServer=True, suspend=False)
+    if os.environ.get('DEBUG_PYDEV', 'false') == 'true':
+      import pydevd
+      pydevd.settrace('192.168.123.1', port=23456, stdoutToServer=True, stderrToServer=True, suspend=False)
     self._current_status = AnsibleServerStatus.STARTING
     self._queue = queue
 
@@ -98,6 +103,11 @@ class AnsibleServer(object):
         response, status = routes.role.process()
         return json.dumps(response), status
 
+    @controller_app.route('/skopeo', methods=['POST'])
+    def skopeo():
+        response, status = routes.skopeo.process()
+        return json.dumps(response), status
+
     @controller_app.route('/service_key', methods=['POST'])
     def service_key():
         response, status = routes.service_key.process()
@@ -126,6 +136,11 @@ class AnsibleServer(object):
     @controller_app.route('/visibility', methods=['POST'])
     def visibility():
         response, status = routes.visibility.process()
+        return json.dumps(response), status
+
+    @controller_app.route('/work_queue', methods=['POST'])
+    def work_queue():
+        response, status = routes.work_queue.process()
         return json.dumps(response), status
 
     self._controller_app = controller_app
@@ -169,7 +184,16 @@ class AnsibleServer(object):
         logger.debug('No additional work found. Going to sleep for %s seconds', WORK_CHECK_TIMEOUT)
         continue
 
-      logger.debug('WORK FOUND %s', job_item)
+      logger.debug('Processing: %s', job_item)
+      resource = json.loads(job_item.body)
+      resource['work_queue'] = False
+      result, status = getattr(sys.modules['routes.' + resource['task']], "process_resources")([resource])
+      if status == 200:
+        logger.debug('Processing complete: %s', result)
+        self._queue.complete(job_item)
+      else:
+        logger.debug('Processing incomplete: %s', result)
+        self._queue.incomplete(job_item, retry_after=WORK_CHECK_TIMEOUT)
       continue
 
   @trollius.coroutine
@@ -183,9 +207,6 @@ class AnsibleServer(object):
     # Initialize the controller server and the WAMP server
     create_wsgi_server(self._controller_app, loop=loop, host=host, port=controller_port, ssl=ssl)
     yield From(loop.create_server(transport_factory, host, websocket_port, ssl=ssl))
-
-    # # Initialize the metrics updater
-    # trollius.async(self._queue_metrics_updater())
 
     # Initialize the work queue checker.
     yield From(self._work_checker())
