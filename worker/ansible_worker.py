@@ -5,7 +5,8 @@ import os
 import socket
 
 from trollius import SSLContext
-from app import app, ansible_queue
+import app as app
+from worker import ansible_queue
 
 #from workers.ansible_worker.ansible_server import AnsibleServer
 from ansible_server import AnsibleServer
@@ -20,10 +21,10 @@ DEFAULT_CONTROLLER_PORT = 8688
 
 def run_ansible_manager():
   websocket_port = int(os.environ.get('ANSIBLE_WEBSOCKET_PORT',
-                                      app.config.get('ANSIBLE_WEBSOCKET_PORT',
+                                      app.app.config.get('ANSIBLE_WEBSOCKET_PORT',
                                                      DEFAULT_WEBSOCKET_PORT)))
   controller_port = int(os.environ.get('ANSIBLE_CONTROLLER_PORT',
-                                       app.config.get('ANSIBLE_CONTROLLER_PORT',
+                                       app.app.config.get('ANSIBLE_CONTROLLER_PORT',
                                                       DEFAULT_CONTROLLER_PORT)))
 
   ssl_context = None
@@ -33,7 +34,7 @@ def run_ansible_manager():
     ssl_context.load_cert_chain(os.path.join(os.environ.get('SSL_CONFIG'), 'ssl.cert'),
                                 os.path.join(os.environ.get('SSL_CONFIG'), 'ssl.key'))
 
-  server = AnsibleServer(app.config['SERVER_HOSTNAME'], ansible_queue)
+  server = AnsibleServer(app.app.config['SERVER_HOSTNAME'], ansible_queue)
   server.run('0.0.0.0', websocket_port, controller_port, ssl=ssl_context)
 
 if __name__ == "__main__":

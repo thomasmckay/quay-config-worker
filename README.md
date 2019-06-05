@@ -6,7 +6,7 @@ Config
 
 Config information is loaded in the following order: First '/quay-config-worker/conf/config.yaml' is imported. Next, the environment variable 'OVERRIDE_CONFIG_YAML' is processed, overriding or adding to existing config. Finally, 'OVERRIDE_CONFIG_JSON' is processed as well.
 
-An example of the minimum needed to allow the worker to run is below.
+An example of the minimum needed to allow the worker to run is below. Warning: Do not use this minimum when running worker against an existing server with populated database.
 ```
 cat <<EOF > args.json
 {
@@ -45,6 +45,7 @@ To confirm that the proper source files are part of the final build, set $QUAYDI
 cd worker
 export QUAYDIR=../build
 export PYTHONPATH=.:$QUAYDIR
+export QUAYCONF=<path to /stack>  # Path to location of stack/config.yaml
 python ansible_worker.py
 ```
 

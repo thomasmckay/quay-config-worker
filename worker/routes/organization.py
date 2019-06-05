@@ -1,6 +1,7 @@
 import logging
 
 from app import app as store
+from app import all_queues, namespace_gc_queue
 from data import model
 
 from decorators import task_resources
@@ -31,7 +32,7 @@ def process(resources):
       organization = None
     if p_state == 'absent':
       if organization is not None:
-        model.user.mark_namespace_for_deletion(organization, store.all_queues, store.namespace_gc_queue)
+        model.user.mark_namespace_for_deletion(organization, all_queues, namespace_gc_queue)
         changed = True
         response.append("Organization '%s' scheduled for removal" % p_name)
       else:

@@ -1,13 +1,9 @@
 ---
 - hosts: all
+  gather_facts: no
   tasks:
     # D A T A B A S E
     #
-    - name: Reset Database
-      tags: [reset]
-      quay_database:
-        state: reset
-      register: params
     - name: Validate Database
       tags: [all, database]
       quay_database:
@@ -36,7 +32,6 @@
         password: changeme
         email: "{{ item }}@examplecorp.com"
       loop:
-        - admin
         - developer
       register: params
     - name: Upload Users
@@ -50,89 +45,22 @@
         body_format: json
       register: result
 
-    # I M A G E   S T O R A G E   L O C A T I O N
-    #
-    # TODO: These must match conf/stack/config.yaml DISTRIBUTED_STORAGE_CONFIG
-    #       Update config.yaml based on these settings
-    #       If LocalStorage, create the dirs
-    #
-    - name: Image Storage Locations
-      quay_image_storage_location:
-        name: "{{ item }}"
-      loop:
-        - local_eu
-        - local_us
-      register: params
-    - name: Upload Storage Locations
-      uri:
-        url: "{{ quay_url }}/image_storage_location"
-        validate_certs: no
-        method: POST
-        headers:
-          Content-Type: "application/json"
-        body: "{{ params }}"
-        body_format: json
-      register: result
-
     # O R G A N I Z A T I O N
     #
     - name: Organizations
+      tags: [all, organizations]
       quay_organization:
         name: "{{ item }}"
         user: developer
         email: "developer+{{ item }}@examplecorp.com"
       loop:
         - examplecorp
+        - acmecorp
       register: params
     - name: Upload Organizations
+      tags: [all, organizations]
       uri:
         url: "{{ quay_url }}/organization"
-        validate_certs: no
-        method: POST
-        headers:
-          Content-Type: "application/json"
-        body: "{{ params }}"
-        body_format: json
-      register: result
-
-    # R O L E
-    #
-    # TODO: These are limited in code to admin, write, read
-    #
-    - name: Roles
-      quay_role:
-        name: "{{ item }}"
-      loop:
-        - admin
-        - write
-        - read
-      register: params
-    - name: Upload Roles
-      uri:
-        url: "{{ quay_url }}/role"
-        validate_certs: no
-        method: POST
-        headers:
-          Content-Type: "application/json"
-        body: "{{ params }}"
-        body_format: json
-      register: result
-
-    # T E A M   R O L E
-    #
-    # TODO: These are limited in code to admin, creator, member
-    #
-    - name: Team Roles
-      quay_team_role:
-        name: "{{ item }}"
-      loop:
-        - admin
-        - creator
-        - member
-      register: params
-    - name: Upload Team Roles
-      uri:
-        url: "{{ quay_url }}/team_role"
         validate_certs: no
         method: POST
         headers:
@@ -164,53 +92,6 @@
         body_format: json
       register: result
 
-    # V I S I B I L I T Y
-    #
-    # TODO: Are these restricted in code to public and private?
-    #
-    - name: Visibility
-      quay_visibility:
-        name: "{{ item }}"
-      loop:
-        - public
-        - private
-      register: params
-    - name: Upload Visibility
-      uri:
-        url: "{{ quay_url }}/visibility"
-        validate_certs: no
-        method: POST
-        headers:
-          Content-Type: "application/json"
-        body: "{{ params }}"
-        body_format: json
-      register: result
-
-    # L O G I N   S E R V I C E
-    #
-    - name: Login Services
-      quay_login_service:
-        name: "{{ item }}"
-      loop:
-        - google
-        - github
-        - quayrobot
-        - ldap
-        - jwtauthn
-        - keystone
-        - dex
-        - oidc
-      register: params
-    - name: Upload Login Services
-      uri:
-        url: "{{ quay_url }}/login_service"
-        validate_certs: no
-        method: POST
-        headers:
-          Content-Type: "application/json"
-        body: "{{ params }}"
-        body_format: json
-      register: result
 
     # R E P O S I T O R I E S
     #
@@ -235,19 +116,29 @@
         body_format: json
       register: result
 
-    # I M A G E
+    # S K O P E O
     #
-    - name: Images
-      tags: [all, images]
-      quay_image:
-        project: developer
-        repository: alpine
-        image_id: developer/alpine/1
+    - name: Skopeo
+      tags: [all, skopeo]
+      quay_skopeo:
+        user: developer
+        password: changeme
+        password: "UwaGGnYewHscZyhXc+4lPTT+UlUN/UQ67My8kH+cXDLP8mySB6xltMSWJtGULRZI"
+        project: "{{ item.project }}"
+        repository: "{{ item.repository }}"
+        tag: "{{ item.tag }}"
+        src_image: "{{ item.src_image }}"
+        src_tag: "{{ item.src_tag }}"
       register: params
-    - name: Upload Images
-      tags: [all, images]
+      with_items:
+        - { project: developer, repository: alpine, tag: latest, src_image: docker.io/alpine, src_tag: latest }
+        - { project: developer, repository: alpine, tag: 3.9, src_image: docker.io/alpine, src_tag: 3.9 }
+        - { project: developer, repository: alpine, tag: 3.8, src_image: docker.io/alpine, src_tag: 3.8 }
+        - { project: developer, repository: alpine, tag: 3.7, src_image: docker.io/alpine, src_tag: 3.7 }
+    - name: Upload Skopeo
+      tags: [all, skopeo]
       uri:
-        url: "{{ quay_url }}/image"
+        url: "{{ quay_url }}/skopeo"
         validate_certs: no
         method: POST
         headers:
@@ -256,22 +147,29 @@
         body_format: json
       register: result
 
-    # T A G
+    # S K O P E O   W O R K   Q U E U E
     #
-    - name: Tags
-      tags: [all, tags]
-      quay_tag:
-        project: developer
-        repository: alpine
-        image_id: developer/alpine/1
-        name: "{{ item }}"
-      loop:
-        - "latest"
+    - name: Skopeo to Work Queue
+      tags: [all, work_queue]
+      quay_skopeo:
+        work_queue: true
+        user: developer
+        password: changeme
+        project: "{{ item.project }}"
+        repository: "{{ item.repository }}"
+        tag: "{{ item.tag }}"
+        src_image: "{{ item.src_image }}"
+        src_tag: "{{ item.src_tag }}"
       register: params
-    - name: Upload Tags
-      tags: [all, tags]
+      with_items:
+        - { project: developer, repository: alpine, tag: latest, src_image: docker.io/alpine, src_tag: latest }
+        - { project: developer, repository: alpine, tag: 3.9, src_image: docker.io/alpine, src_tag: 3.9 }
+        - { project: developer, repository: alpine, tag: 3.8, src_image: docker.io/alpine, src_tag: 3.8 }
+        - { project: developer, repository: alpine, tag: 3.7, src_image: docker.io/alpine, src_tag: 3.7 }
+    - name: Upload Skopeo to Work Queue
+      tags: [all, work_queue]
       uri:
-        url: "{{ quay_url }}/tag"
+        url: "{{ quay_url }}/skopeo"
         validate_certs: no
         method: POST
         headers:
@@ -279,3 +177,48 @@
         body: "{{ params }}"
         body_format: json
       register: result
+
+    # # I M A G E
+    # #
+    # - name: Images
+    #   tags: [all, images]
+    #   quay_image:
+    #     project: developer
+    #     repository: alpine
+    #     image_id: developer/alpine/1
+    #   register: params
+    # - name: Upload Images
+    #   tags: [all, images]
+    #   uri:
+    #     url: "{{ quay_url }}/image"
+    #     validate_certs: no
+    #     method: POST
+    #     headers:
+    #       Content-Type: "application/json"
+    #     body: "{{ params }}"
+    #     body_format: json
+    #   register: result
+
+    # # T A G
+    # #
+    # - name: Tags
+    #   tags: [all, tags]
+    #   quay_tag:
+    #     project: developer
+    #     repository: alpine
+    #     image_id: developer/alpine/1
+    #     name: "{{ item }}"
+    #   loop:
+    #     - "latest"
+    #   register: params
+    # - name: Upload Tags
+    #   tags: [all, tags]
+    #   uri:
+    #     url: "{{ quay_url }}/tag"
+    #     validate_certs: no
+    #     method: POST
+    #     headers:
+    #       Content-Type: "application/json"
+    #     body: "{{ params }}"
+    #     body_format: json
+    #   register: result
