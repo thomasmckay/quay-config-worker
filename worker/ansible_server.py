@@ -19,6 +19,7 @@ import routes.image
 import routes.image_storage_location
 import routes.login_service
 import routes.organization
+import routes.repo_mirror
 import routes.repository
 import routes.role
 import routes.service_key
@@ -44,9 +45,10 @@ class AnsibleServerStatus(object):
 
 class AnsibleServer(object):
   def __init__(self, registry_hostname, queue):
-    if os.environ.get('DEBUG_PYDEV', 'false') == 'true':
+    if os.getenv('PYDEV_DEBUG', None):
       import pydevd
-      pydevd.settrace('192.168.123.1', port=23456, stdoutToServer=True, stderrToServer=True, suspend=False)
+      host, port = os.getenv('PYDEV_DEBUG').split(':')
+      pydevd.settrace(host, port=int(port), stdoutToServer=True, stderrToServer=True, suspend=False)
     self._current_status = AnsibleServerStatus.STARTING
     self._queue = queue
 
@@ -91,6 +93,11 @@ class AnsibleServer(object):
     @controller_app.route('/organization', methods=['POST'])
     def organization():
         response, status = routes.organization.process()
+        return json.dumps(response), status
+
+    @controller_app.route('/repo_mirror', methods=['POST'])
+    def repo_mirror():
+        response, status = routes.repo_mirror.process()
         return json.dumps(response), status
 
     @controller_app.route('/repository', methods=['POST'])

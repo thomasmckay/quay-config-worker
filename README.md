@@ -48,4 +48,7 @@ export PYTHONPATH=.:$QUAYDIR
 export QUAYCONF=<path to /stack>  # Path to location of stack/config.yaml
 python ansible_worker.py
 ```
-
+or
+```
+PYTHONPATH=.:/home/thomasmckay/code/quay-devel WORK_CHECK_TIMEOUT=600 QUAYCONF=/home/thomasmckay/quay-volumes ~/code/tmp/autoreload.py python ansible_worker.py
+```

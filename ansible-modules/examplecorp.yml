@@ -4,29 +4,30 @@
   tasks:
     # D A T A B A S E
     #
-    - name: Validate Database
-      tags: [all, database]
-      quay_database:
-        state: present
-      register: params
-    - name: Upload Database
-      tags: [all, database, reset]
-      uri:
-        url: "{{ quay_url }}/database"
-        # This doesn't work
-        # client_cert: /home/thomasmckay/code/tmp/ssl.cert
-        # client_key: /home/thomasmckay/code/tmp/ssl.key
-        validate_certs: no
-        method: POST
-        headers:
-          Content-Type: "application/json"
-        body: "{{ params }}"
-        body_format: json
-      register: result
+    # - name: Validate Database
+    #   tags: [database]
+    #   quay_database:
+    #     state: present
+    #   register: params
+    # - name: Upload Database
+    #   tags: [database, reset]
+    #   uri:
+    #     url: "{{ quay_url }}/database"
+    #     # This doesn't work
+    #     # client_cert: /home/thomasmckay/code/tmp/ssl.cert
+    #     # client_key: /home/thomasmckay/code/tmp/ssl.key
+    #     validate_certs: no
+    #     method: POST
+    #     headers:
+    #       Content-Type: "application/json"
+    #     body: "{{ params }}"
+    #     body_format: json
+    #   register: result
 
     # U S E R
     #
     - name: Users
+      tags: [all, users]
       quay_user:
         username: "{{ item }}"
         password: changeme
@@ -35,6 +36,7 @@
         - developer
       register: params
     - name: Upload Users
+      tags: [all, users]
       uri:
         url: "{{ quay_url }}/user"
         validate_certs: no
@@ -69,28 +71,31 @@
         body_format: json
       register: result
 
-    # T E A M
-    #
-    - name: Teams
-      quay_team:
-        name: "{{ item }}"
-        user: developer
-        organization: examplecorp
-        role: creator
-        description: Example Corp. Developers
-      loop:
-        - developers
-      register: params
-    - name: Upload Teams
-      uri:
-        url: "{{ quay_url }}/team"
-        validate_certs: no
-        method: POST
-        headers:
-          Content-Type: "application/json"
-        body: "{{ params }}"
-        body_format: json
-      register: result
+    # ???? broken
+    # # T E A M
+    # #
+    # - name: Teams
+    #   tags: [all, teams]
+    #   quay_team:
+    #     name: "{{ item }}"
+    #     user: developer
+    #     organization: examplecorp
+    #     role: creator
+    #     description: Example Corp. Developers
+    #   loop:
+    #     - developers
+    #   register: params
+    # - name: Upload Teams
+    #   tags: [all, teams]
+    #   uri:
+    #     url: "{{ quay_url }}/team"
+    #     validate_certs: no
+    #     method: POST
+    #     headers:
+    #       Content-Type: "application/json"
+    #     body: "{{ params }}"
+    #     body_format: json
+    #   register: result
 
 
     # R E P O S I T O R I E S
@@ -98,11 +103,18 @@
     - name: Repositories
       tags: [all, repositories]
       quay_repository:
-        user: developer
-        public: false
-        name: "{{ item }}"
+        user: "{{ item.user }}"
+        public: "{{ item.public }}"
+        name: "{{ item.name }}"
+        mode: "{{ item.mode }}"
       loop:
-        - "alpine"
+        - {mode: NORMAL, user: developer, name: "alpine", public: false}
+        - {mode: MIRROR, user: admin, name: "sample", public: false}
+        - {mode: MIRROR, user: admin, name: "sample-three", public: false}
+        - {mode: MIRROR, user: admin, name: "ubi7", public: true}
+        - {mode: MIRROR, user: admin, name: "registry-redhat-io-ubi7", public: true}
+        - {mode: MIRROR, user: admin, name: "shadowbox", public: true}
+        - {mode: MIRROR, user: admin, name: "staging-shadowbox", public: true}
       register: params
     - name: Upload Repositories
       tags: [all, repositories]
@@ -116,67 +128,66 @@
         body_format: json
       register: result
 
-    # S K O P E O
-    #
-    - name: Skopeo
-      tags: [all, skopeo]
-      quay_skopeo:
-        user: developer
-        password: changeme
-        password: "UwaGGnYewHscZyhXc+4lPTT+UlUN/UQ67My8kH+cXDLP8mySB6xltMSWJtGULRZI"
-        project: "{{ item.project }}"
-        repository: "{{ item.repository }}"
-        tag: "{{ item.tag }}"
-        src_image: "{{ item.src_image }}"
-        src_tag: "{{ item.src_tag }}"
-      register: params
-      with_items:
-        - { project: developer, repository: alpine, tag: latest, src_image: docker.io/alpine, src_tag: latest }
-        - { project: developer, repository: alpine, tag: 3.9, src_image: docker.io/alpine, src_tag: 3.9 }
-        - { project: developer, repository: alpine, tag: 3.8, src_image: docker.io/alpine, src_tag: 3.8 }
-        - { project: developer, repository: alpine, tag: 3.7, src_image: docker.io/alpine, src_tag: 3.7 }
-    - name: Upload Skopeo
-      tags: [all, skopeo]
-      uri:
-        url: "{{ quay_url }}/skopeo"
-        validate_certs: no
-        method: POST
-        headers:
-          Content-Type: "application/json"
-        body: "{{ params }}"
-        body_format: json
-      register: result
+    # # S K O P E O
+    # #
+    # - name: Skopeo
+    #   tags: [all, skopeo]
+    #   quay_skopeo:
+    #     user: developer
+    #     password: changeme
+    #     project: "{{ item.project }}"
+    #     repository: "{{ item.repository }}"
+    #     tag: "{{ item.tag }}"
+    #     src_image: "{{ item.src_image }}"
+    #     src_tag: "{{ item.src_tag }}"
+    #   register: params
+    #   with_items:
+    #     - { project: developer, repository: alpine, tag: latest, src_image: docker.io/alpine, src_tag: latest }
+    #     - { project: developer, repository: alpine, tag: 3.9, src_image: docker.io/alpine, src_tag: 3.9 }
+    #     - { project: developer, repository: alpine, tag: 3.8, src_image: docker.io/alpine, src_tag: 3.8 }
+    #     - { project: developer, repository: alpine, tag: 3.7, src_image: docker.io/alpine, src_tag: 3.7 }
+    # - name: Upload Skopeo
+    #   tags: [all, skopeo]
+    #   uri:
+    #     url: "{{ quay_url }}/skopeo"
+    #     validate_certs: no
+    #     method: POST
+    #     headers:
+    #       Content-Type: "application/json"
+    #     body: "{{ params }}"
+    #     body_format: json
+    #   register: result
 
-    # S K O P E O   W O R K   Q U E U E
-    #
-    - name: Skopeo to Work Queue
-      tags: [all, work_queue]
-      quay_skopeo:
-        work_queue: true
-        user: developer
-        password: changeme
-        project: "{{ item.project }}"
-        repository: "{{ item.repository }}"
-        tag: "{{ item.tag }}"
-        src_image: "{{ item.src_image }}"
-        src_tag: "{{ item.src_tag }}"
-      register: params
-      with_items:
-        - { project: developer, repository: alpine, tag: latest, src_image: docker.io/alpine, src_tag: latest }
-        - { project: developer, repository: alpine, tag: 3.9, src_image: docker.io/alpine, src_tag: 3.9 }
-        - { project: developer, repository: alpine, tag: 3.8, src_image: docker.io/alpine, src_tag: 3.8 }
-        - { project: developer, repository: alpine, tag: 3.7, src_image: docker.io/alpine, src_tag: 3.7 }
-    - name: Upload Skopeo to Work Queue
-      tags: [all, work_queue]
-      uri:
-        url: "{{ quay_url }}/skopeo"
-        validate_certs: no
-        method: POST
-        headers:
-          Content-Type: "application/json"
-        body: "{{ params }}"
-        body_format: json
-      register: result
+    # # S K O P E O   W O R K   Q U E U E
+    # #
+    # - name: Skopeo to Work Queue
+    #   tags: [all, work_queue]
+    #   quay_skopeo:
+    #     work_queue: true
+    #     user: developer
+    #     password: changeme
+    #     project: "{{ item.project }}"
+    #     repository: "{{ item.repository }}"
+    #     tag: "{{ item.tag }}"
+    #     src_image: "{{ item.src_image }}"
+    #     src_tag: "{{ item.src_tag }}"
+    #   register: params
+    #   with_items:
+    #     - { project: developer, repository: alpine, tag: latest, src_image: docker.io/alpine, src_tag: latest }
+    #     - { project: developer, repository: alpine, tag: 3.9, src_image: docker.io/alpine, src_tag: 3.9 }
+    #     - { project: developer, repository: alpine, tag: 3.8, src_image: docker.io/alpine, src_tag: 3.8 }
+    #     - { project: developer, repository: alpine, tag: 3.7, src_image: docker.io/alpine, src_tag: 3.7 }
+    # - name: Upload Skopeo to Work Queue
+    #   tags: [all, work_queue]
+    #   uri:
+    #     url: "{{ quay_url }}/skopeo"
+    #     validate_certs: no
+    #     method: POST
+    #     headers:
+    #       Content-Type: "application/json"
+    #     body: "{{ params }}"
+    #     body_format: json
+    #   register: result
 
     # # I M A G E
     # #
@@ -222,3 +233,120 @@
     #     body: "{{ params }}"
     #     body_format: json
     #   register: result
+
+    # R E P O S I T O R Y   M I R R O R S
+    #
+    - name: Repository Mirrors
+      tags: [all, repo_mirrors]
+      quay_repo_mirror:
+        user: admin
+        password: changeme
+        external_user: "{{ item.external_user }}"
+        external_password: "{{ item.external_password }}"
+        external_registry: "{{ item.external_registry }}"
+        external_namespace: "{{ item.external_namespace }}"
+        external_repository: "{{ item.external_repository }}"
+        external_tag: "{{ item.external_tag }}"
+        internal_robot: "{{ item.internal_robot }}"
+        internal_namespace: "{{ item.internal_namespace }}"
+        internal_repository: "{{ item.internal_repository }}"
+        sync_interval: "{{ item.sync_interval }}"
+        sync_start_date: "{{ item.sync_start_date }}"
+        is_enabled: "{{ item.is_enabled }}"
+      register: params
+      with_items:
+        - {
+          external_user: "",
+          external_password: "",
+          external_registry: "thomasmckay.usersys.redhat.com:8443",
+          external_namespace: admin,
+          external_repository: centos,
+          external_tag: "7,7.1*",
+          internal_robot: admin+mirror,
+          internal_namespace: admin,
+          internal_repository: sample,
+          sync_start_date: now,
+          sync_interval: 3000,
+          is_enabled: true
+          }
+        - {
+          external_user: "",
+          external_password: "",
+          external_registry: "thomasmckay.usersys.redhat.com:8443",
+          external_namespace: admin,
+          external_repository: centos,
+          external_tag: "7,8,9",
+          internal_robot: admin+mirror,
+          internal_namespace: admin,
+          internal_repository: "sample-three",
+          sync_start_date: "now",
+          sync_interval: 3000,
+          is_enabled: true
+          }
+        - {
+          external_user: "",
+          external_password: "",
+          external_registry: "registry.access.redhat.com",
+          external_namespace: ubi7,
+          external_repository: ubi,
+          external_tag: "7.6*",
+          internal_robot: admin+mirror,
+          internal_namespace: admin,
+          internal_repository: "ubi7",
+          sync_start_date: "now",
+          sync_interval: 3000,
+          is_enabled: true
+          }
+        - {
+          external_user: "",
+          external_password: "",
+          external_registry: "registry.redhat.io",
+          external_namespace: ubi7,
+          external_repository: ubi,
+          external_tag: "7.6*",
+          internal_robot: admin+mirror,
+          internal_namespace: admin,
+          internal_repository: "registry-redhat-io-ubi7",
+          sync_start_date: "now",
+          sync_interval: 3000,
+          is_enabled: true
+          }
+        - {
+          external_user: "",
+          external_password: "",
+          external_registry: "quay.io",
+          external_namespace: outline,
+          external_repository: shadowbox,
+          external_tag: "daily,daily-2019-07-3*,daily-2019-08-*",
+          internal_robot: admin+mirror,
+          internal_namespace: admin,
+          internal_repository: "shadowbox",
+          sync_start_date: "now",
+          sync_interval: 3000,
+          is_enabled: true
+          }
+        - {
+          external_user: "",
+          external_password: "",
+          external_registry: "staging.quay.io",
+          external_namespace: outline,
+          external_repository: shadowbox,
+          external_tag: "daily,daily-2019-08-*",
+          internal_robot: admin+mirror,
+          internal_namespace: admin,
+          internal_repository: "staging-shadowbox",
+          sync_start_date: "now",
+          sync_interval: 3000,
+          is_enabled: false
+          }
+    - name: Upload Repository Mirrors
+      tags: [all, repo_mirrors]
+      uri:
+        url: "{{ quay_url }}/repo_mirror"
+        validate_certs: no
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body: "{{ params }}"
+        body_format: json
+      register: result

@@ -3,7 +3,7 @@ import json
 import features
 from flask import request
 
-from data.database import (Repository, User)
+from data.database import (Repository, User, RepositoryState)
 from data import model
 
 from decorators import task_resources
@@ -20,8 +20,9 @@ def process(resources):
     p_name = resource['name']
     p_user = resource['user']
     p_public = resource['public']
-    p_state = resource['state']
     p_description = resource['description']
+    p_mode = resource['mode']
+    p_state = resource['state']
 
     user = model.user.get_user(p_user)
     if user is None:
@@ -58,7 +59,19 @@ def process(resources):
       if p_description and repository.description != p_description:
         changed = True
         repository.description = p_description
+        repository.save()
         response.append("Description updated")
+
+      modes = {
+        "NORMAL": RepositoryState.NORMAL,
+        "READ_ONLY": RepositoryState.READ_ONLY,
+        "MIRROR": RepositoryState.MIRROR
+      }
+      if p_mode and repository.state != modes[p_mode]:
+        changed = True
+        repository.state = modes[p_mode]
+        repository.save()
+        response.append("Mode updated")
 
   return {
     "failed": False,

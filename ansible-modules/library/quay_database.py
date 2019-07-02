@@ -7,7 +7,7 @@ def main():
   fields = {
     "state": {
       "default": "present",
-      "choices": ['present', 'reset'],
+      "choices": ['present', 'reset', 'migrate'],
       "type": 'str'
     },
   }

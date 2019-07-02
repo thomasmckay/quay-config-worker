@@ -18,6 +18,7 @@ WORKER_FILES = \
 	routes/login_service.py \
 	routes/organization.py \
 	routes/repository.py \
+	routes/repo_mirror.py \
 	routes/role.py \
 	routes/service_key.py \
 	routes/skopeo.py \
@@ -38,6 +39,7 @@ ANSIBLE_FILES = \
 	ansible-modules/library/quay_image_storage_location.py \
 	ansible-modules/library/quay_login_service.py \
 	ansible-modules/library/quay_organization.py \
+	ansible-modules/library/quay_repo_mirror.py \
 	ansible-modules/library/quay_repository.py \
 	ansible-modules/library/quay_role.py \
 	ansible-modules/library/quay_service_key.py \
@@ -53,14 +55,18 @@ ANSIBLE_FILES = \
 QUAY_FILES = \
 	_init.py \
 	config.py \
+  path_converters.py \
+  release.py \
 	auth \
+	avatars \
+  buildman \
 	buildstatus \
 	data \
 	digest \
 	features \
 	image \
-  release.py \
 	oauth \
+  storage \
 	util
 
 QUAY_BUILD_FILES := $(addprefix $(BUILD_DIR)/, $(QUAY_FILES))

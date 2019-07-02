@@ -8,7 +8,8 @@ def main():
     "user": {"required": True, "type": "str"},
     "name": {"required": True, "type": "str"},
     "description": {"required": False, "type": "str"},
-    "public": {"default": False, "type": "bool"},
+    "public": {"required": False, "default": False, "type": "bool"},
+    "mode": {"required": False, "default": "NORMAL", "type": "str"},
     "state": {
       "default": "present",
       "choices": ["present", "absent"],
