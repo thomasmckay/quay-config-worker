@@ -146,7 +146,7 @@ supervisor-stdout==0.1.1
 toposort==1.5
 trollius==2.2
 tzlocal==1.5.1
-urllib3==1.22
+urllib3==1.24.2
 waitress==1.1.0
 WebOb==1.8.1
 Werkzeug==0.14.1
