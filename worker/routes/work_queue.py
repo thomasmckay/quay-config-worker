@@ -8,7 +8,8 @@ from ansible.module_utils.basic import AnsibleModule
 from data.database import db
 from data.database import (Repository, User)
 from data import model
-from app import (app, ansible_queue)
+from app import app
+from worker import ansible_queue
 
 from decorators import task_resources
 

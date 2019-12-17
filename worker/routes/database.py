@@ -65,6 +65,9 @@ def process(resources):
                      "quayrelease",
                      "quayservice",
                      "queueitem",
+                     "repomirrorconfig",
+                     "repomirrorrule",
+                     "robotaccountmetadata",
                      "repository",
                      "repositoryactioncount",
                      "repositoryauthorizedemail",
@@ -75,7 +78,6 @@ def process(resources):
                      "repositorypermission",
                      "repositorysearchscore",
                      "repositorytag",
-                     "robotaccountmetadata",
                      "role",
                      "servicekey",
                      "servicekeyapproval",
@@ -105,6 +107,7 @@ def process(resources):
     if p_state == 'reset':
       db.drop_tables(all_models)
 
+    if p_state == 'reset' or p_state == 'migrate':
       try:
         db_uri = app.config['DB_URI']
         runmigration.run_alembic_migration(db_uri, logger, setup_app=False)
@@ -117,12 +120,12 @@ def process(resources):
 
     # Always run 'present' state to confirm 'reset'
     tables = db.get_tables()
-    if tables != expected_tables:
-      extra_tables = list(set(expected_tables) - set(tables))
-      missing_tables = list(set(tables) - set(expected_tables))
+    extra_tables = list(set(expected_tables) - set(tables))
+    missing_tables = list(set(tables) - set(expected_tables))
+    if extra_tables != [] or missing_tables != []:
       return {
         "failed": True,
-        "msg": "Database exists but has mismatched tables\nMissing tables: %s\nExtra tables: %s" % (extra_tables, missing_tables)
+        "msg": "Database exists but has mismatched tables\nMissing tables: %s\nExtra tables: %s" % (missing_tables, extra_tables)
       }, 400
 
   return {
