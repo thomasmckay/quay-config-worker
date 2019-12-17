@@ -1,11 +1,11 @@
-QUAY_DIR ?= ../..
+QUAY_DIR ?= /home/thomasmckay/code/quay-devel
 BUILD_DIR = build
 IMAGE_NAME ?= quay-config-worker:latest
 
 WORKER_FILES = \
 	ansible_server.py \
 	ansible_worker.py \
-  app.py \
+	app.py \
 	entrypoint.sh \
 	__init__.py \
 	requirements.txt \
@@ -28,7 +28,7 @@ WORKER_FILES = \
 	routes/team_role.py \
 	routes/user.py \
 	routes/visibility.py \
-  routes/work_queue.py
+	routes/work_queue.py
 
 ANSIBLE_FILES = \
 	ansible-modules/examplecorp.yml \
@@ -54,19 +54,20 @@ ANSIBLE_FILES = \
 
 QUAY_FILES = \
 	_init.py \
+	active_migration.py \
 	config.py \
-  path_converters.py \
-  release.py \
+	path_converters.py \
+	release.py \
 	auth \
 	avatars \
-  buildman \
+	buildman \
 	buildstatus \
 	data \
 	digest \
 	features \
 	image \
 	oauth \
-  storage \
+	storage \
 	util
 
 QUAY_BUILD_FILES := $(addprefix $(BUILD_DIR)/, $(QUAY_FILES))
@@ -102,3 +103,12 @@ $(BUILD_DIR)/Dockerfile: Dockerfile.rhel7
 $(BUILD_DIR)/data/migrations: $(QUAY_DIR)/data/migrations
 	mkdir -p $@
 	cp -R $< $(@D)
+
+black:
+	black --check --diff ansible-modules
+	black --check --diff worker
+
+galaxy:
+	ansible-galaxy collection build ansible-collection --force
+	ansible-galaxy collection publish thomasmckay-quay-0.1.1.tar.gz --api-key=$(GALAXY_API_KEY)
+
