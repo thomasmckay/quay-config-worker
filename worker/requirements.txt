@@ -124,7 +124,7 @@ python-ldap==3.0.0
 python-magic==0.4.15
 python-swiftclient==3.5.0
 pytz==2018.4
-PyYAML==3.12
+PyYAML==5.1
 raven==6.7.0
 recaptcha2==0.1
 redis==2.10.6
