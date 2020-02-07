@@ -237,15 +237,13 @@
     # R E P O S I T O R Y   M I R R O R S
     #
     - name: Repository Mirrors
-      tags: [all, repo_mirrors]
+      tags: [all, repository-mirrors]
       quay_repo_mirror:
         user: admin
         password: changeme
         external_user: "{{ item.external_user }}"
         external_password: "{{ item.external_password }}"
-        external_registry: "{{ item.external_registry }}"
-        external_namespace: "{{ item.external_namespace }}"
-        external_repository: "{{ item.external_repository }}"
+        external_reference: "{{ item.external_reference }}"
         external_tag: "{{ item.external_tag }}"
         internal_robot: "{{ item.internal_robot }}"
         internal_namespace: "{{ item.internal_namespace }}"
@@ -258,9 +256,7 @@
         - {
           external_user: "",
           external_password: "",
-          external_registry: "thomasmckay.usersys.redhat.com:8443",
-          external_namespace: admin,
-          external_repository: centos,
+          external_reference: "thomasmckay.usersys.redhat.com:8443/admin/centos",
           external_tag: "7,7.1*",
           internal_robot: admin+mirror,
           internal_namespace: admin,
@@ -272,9 +268,7 @@
         - {
           external_user: "",
           external_password: "",
-          external_registry: "thomasmckay.usersys.redhat.com:8443",
-          external_namespace: admin,
-          external_repository: centos,
+          external_reference: "thomasmckay.usersys.redhat.com:8443/admin/centos",
           external_tag: "7,8,9",
           internal_robot: admin+mirror,
           internal_namespace: admin,
@@ -286,9 +280,7 @@
         - {
           external_user: "",
           external_password: "",
-          external_registry: "registry.access.redhat.com",
-          external_namespace: ubi7,
-          external_repository: ubi,
+          external_reference: "registry.access.redhat.com/ubi7/ubi",
           external_tag: "7.6*",
           internal_robot: admin+mirror,
           internal_namespace: admin,
@@ -300,9 +292,7 @@
         - {
           external_user: "",
           external_password: "",
-          external_registry: "registry.redhat.io",
-          external_namespace: ubi7,
-          external_repository: ubi,
+          external_reference: "registry.redhat.io/ubi7/ubi",
           external_tag: "7.6*",
           internal_robot: admin+mirror,
           internal_namespace: admin,
@@ -314,9 +304,7 @@
         - {
           external_user: "",
           external_password: "",
-          external_registry: "quay.io",
-          external_namespace: outline,
-          external_repository: shadowbox,
+          external_reference: "quay.io/outline/shadowbox",
           external_tag: "daily,daily-2019-07-3*,daily-2019-08-*",
           internal_robot: admin+mirror,
           internal_namespace: admin,
@@ -328,9 +316,7 @@
         - {
           external_user: "",
           external_password: "",
-          external_registry: "staging.quay.io",
-          external_namespace: outline,
-          external_repository: shadowbox,
+          external_reference: "staging.quay.io/outline/shadowbox",
           external_tag: "daily,daily-2019-08-*",
           internal_robot: admin+mirror,
           internal_namespace: admin,
@@ -340,7 +326,7 @@
           is_enabled: false
           }
     - name: Upload Repository Mirrors
-      tags: [all, repo_mirrors]
+      tags: [all, repository-mirrors]
       uri:
         url: "{{ quay_url }}/repo_mirror"
         validate_certs: no

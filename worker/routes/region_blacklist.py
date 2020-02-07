@@ -2,33 +2,27 @@ import logging
 import json
 from flask import request
 
-from data.database import (Repository, User)
+from data.database import Repository, User
 from data import model
 
 from decorators import task_resources
 
 logger = logging.getLogger(__name__)
 
+
 @task_resources
 def process(resources):
-  response = []
-  changed = True
+    response = []
+    changed = True
 
-  for resource in resources:
-    p_namespace = resource['namespace']
-    p_region = resource['region']
-    p_state = resource['state']
-    p_description = resource['description']
+    for resource in resources:
+        p_namespace = resource["namespace"]
+        p_region = resource["region"]
+        p_state = resource["state"]
+        p_description = resource["description"]
 
-    user = model.user.get_user(p_user)
-    if user is None:
-      return {
-        "failed": True,
-        "msg": "User '%s' does not exist" % (p_user)
-      }, 400
+        user = model.user.get_user(p_user)
+        if user is None:
+            return {"failed": True, "msg": "User '%s' does not exist" % (p_user)}, 400
 
-  return {
-    "failed": False,
-    "changed": changed,
-    "meta": response
-  }, 200
+    return {"failed": False, "changed": changed, "meta": response}, 200

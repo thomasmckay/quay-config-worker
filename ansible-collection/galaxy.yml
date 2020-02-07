@@ -1,0 +1,15 @@
+namespace: "thomasmckay"
+name: "quay"
+description: Quay setup and configuration
+authors:
+  - "thomasmckay <thomasmckay@redhat.com>"
+version: "0.1.1"
+license:
+  - "Apache-2.0"
+tags:
+  - quay
+readme: "README.md"
+homepage: "https://projectquay.io/"
+repository: "https://github.com/thomasmckay/quay-config-worker"
+documentation: "https://github.com/thomasmckay/quay-config-worker/blob/master/README.md"
+issues: "https://github.com/thomasmckay/quay-config-worker/issues"
