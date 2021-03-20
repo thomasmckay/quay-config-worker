@@ -67,7 +67,7 @@ idna==2.6
 ipaddress==1.0.22
 iso8601==0.1.12
 itsdangerous==0.24
-Jinja2==2.10
+Jinja2==2.11.3
 jmespath==0.9.3
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
