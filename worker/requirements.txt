@@ -14,7 +14,7 @@ alembic==0.9.9
 -e git+https://github.com/DevTable/boto.git@a6a5c00bd199b1492e99199251b10451970b5b08#egg=boto
 APScheduler==3.0.5
 asn1crypto==0.24.0
-autobahn==0.9.3.post3
+autobahn==20.12.3
 azure-common==1.1.10
 azure-nspkg==2.0.0
 azure-storage-blob==1.1.0
