@@ -20,7 +20,7 @@ azure-nspkg==2.0.0
 azure-storage-blob==1.1.0
 azure-storage-common==1.1.0
 azure-storage-nspkg==3.0.0
-Babel==2.5.3
+Babel==2.9.1
 backports.tempfile==1.0
 beautifulsoup4==4.6.0
 bencode==1.0
